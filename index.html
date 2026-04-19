@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrueMoney Wallet Verification</title>
+    <style>
+        body { font-family: 'Tahoma', sans-serif; background-color: #f0f0f0; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .phone-screen { width: 360px; height: 640px; background: #ffffff; border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); overflow: hidden; position: relative; border: 5px solid #333; }
+        .header { background: #ff8c00; color: white; padding: 20px; text-align: center; font-weight: bold; font-size: 1.1em; }
+        .content { padding: 25px; text-align: center; }
+        .logo-box { margin-bottom: 20px; }
+        .logo-img { width: 120px; height: auto; } 
+        h3 { color: #333; margin-top: 0; }
+        p { color: #666; font-size: 14px; line-height: 1.5; }
+        input { width: 85%; padding: 15px; margin: 20px 0; border: 1px solid #ddd; border-radius: 10px; font-size: 18px; text-align: center; background: #fafafa; outline: none; }
+        .btn-confirm { background: linear-gradient(to right, #ff8c00, #ff5f00); color: white; border: none; padding: 15px; border-radius: 30px; cursor: pointer; font-size: 16px; width: 90%; font-weight: bold; box-shadow: 0 4px 10px rgba(255,140,0,0.3); }
+        
+        /* หน้าจอตอนเงินลด */
+        .wallet-card { background: #fff5e6; border: 2px solid #ffd1b3; padding: 20px; border-radius: 20px; margin-top: 10px; }
+        #balance-amount { font-size: 42px; color: #ff5f00; font-weight: bold; }
+        .currency { font-size: 18px; color: #333; margin-left: 5px; }
+        .warning-text { color: #d32f2f; font-weight: bold; margin-top: 20px; display: none; font-size: 13px; animation: blink 0.8s infinite; }
+        @keyframes blink { 0% {opacity: 1;} 50% {opacity: 0.2;} 100% {opacity: 1;} }
+
+        .history-list { text-align: left; margin-top: 20px; height: 180px; overflow-y: auto; background: #fff; border-radius: 10px; padding: 10px; border: 1px solid #eee; }
+        .history-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f9f9f9; font-size: 12px; }
+        .minus-price { color: #ff5f00; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="phone-screen">
+    <div class="header">TrueMoney Security Check</div>
+    
+    <div id="step1" class="content">
+        <div class="logo-box">
+            <img src="truemoney-logo.png" alt="TrueMoney" class="logo-img">
+        </div>
+        <h3>ตรวจสอบบัญชี</h3>
+        <p>เพื่อรักษาความปลอดภัยขั้นสูงสุด <br>กรุณาระบุเบอร์โทรศัพท์เพื่อตรวจสอบยอดเงิน</p>
+        <input type="tel" id="phoneNum" placeholder="0xx-xxx-xxxx" maxlength="10">
+        <button class="btn-confirm" onclick="startPrank()">ตรวจสอบทันที</button>
+    </div>
+
+    <div id="step2" class="content" style="display:none;">
+        <p style="color: #888; margin-bottom: 5px;">ยอดเงินคงเหลือปัจจุบัน</p>
+        <div class="wallet-card">
+            <span id="balance-amount">0.09</span><span class="currency">฿</span>
+        </div>
+        <p class="warning-text" id="status-msg">⚠️ ตรวจพบการชำระเงินอัตโนมัติ...</p>
+        <div class="history-list" id="log-container">
+            <p style="color: #999; font-size: 10px; text-align: center;">-- ประวัติการทำรายการล่าสุด --</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ตั้งค่าเริ่มต้น 0.09 บาท
+    let currentBalance = 0.09;
+
+    function startPrank() {
+        const phone = document.getElementById('phoneNum').value;
+        if(phone.length < 10) {
+            alert('กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง');
+            return;
+        }
+
+        document.getElementById('step1').style.display = 'none';
+        document.getElementById('step2').style.display = 'block';
+        
+        setTimeout(() => {
+            document.getElementById('status-msg').style.display = 'block';
+            drainMoney();
+        }, 1200);
+    }
+
+    function drainMoney() {
+        const log = document.getElementById('log-container');
+        const display = document.getElementById('balance-amount');
+
+        const interval = setInterval(() => {
+            // หักออกทีละ 0.01 บาท
+            let decrease = 0.01;
+            
+            if (currentBalance > 0.001) { // ใช้ 0.001 กันเลขทศนิยมเพี้ยน
+                currentBalance -= decrease;
+                // แก้ไขปัญหาทศนิยมใน JS ด้วยการใช้ toFixed
+                display.innerText = Math.abs(currentBalance).toFixed(2);
+                
+                let item = document.createElement('div');
+                item.className = 'history-item';
+                item.innerHTML = `
+                    <span>ชำระค่าบริการ SMS Content</span>
+                    <span class="minus-price">-${decrease.toFixed(2)} ฿</span>
+                `;
+                log.prepend(item);
+            } else {
+                clearInterval(interval);
+                display.innerText = "0.00";
+                setTimeout(() => {
+                    // ข้อความแจ้งเตือนตอนท้ายตามที่คุณต้องการ
+                    alert('โอนเงินมาตรวจสอบที่เลข 0639502250');
+                    location.reload(); 
+                }, 1000);
+            }
+        }, 700); // หักออกทุกๆ 0.7 วินาที
+    }
+</script>
+
+</body>
+</html>
+
